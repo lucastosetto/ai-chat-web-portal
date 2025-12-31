@@ -2,21 +2,86 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
 :root {
+  /* Light mode colors */
   --background: #ffffff;
   --foreground: #000000;
+  
+  /* Theme colors - Light mode */
+  --color-primary: #006C67;
+  --color-primary-80: #006C67CC;
+  --color-primary-50: #006C6780;
+  --color-primary-30: #006C674D;
+  --color-primary-light: #E9F7F6;
+  
+  --color-secondary: #531CB3;
+  --color-secondary-80: #531CB3CC;
+  --color-secondary-50: #531CB380;
+  --color-secondary-30: #531CB34D;
+  --color-secondary-lighter: #F6F0F9;
+  --color-secondary-light: #EDE2FF;
+  --color-secondary-medium: #CEB8F2;
+  
+  --color-error: #BE1E2D;
+  --color-background: #F4F5FA;
+  --color-text: #1E1E1E;
+  --color-text-label: #6B6B6B;
+  --color-text-placeholder: #A0A0A0;
+  
+  --color-grey: #827F85;
+  --color-grey-light: #EBEBEB;
+  --color-border-light: #E2E2E2;
+  --color-border-line: #DADADA;
+  --color-border-grey: #D7DBE6;
+  
+  --color-gold: #FCCF1D;
+  --color-gold-light: #FEF2C3;
+  --color-dark-blue: #2F2F4B;
+  --color-link: #576BFA;
+  --color-shadow: #E0E3EB29;
+  
+  /* Brand colors */
+  --color-brand-black: #000000;
+  --color-brand-white: #FFFFFF;
+  --color-brand-flash-white: #EBEBEB;
+  --color-brand-green: #006C67;
+  --color-brand-emerald-green: #50C878;
+  --color-brand-purple-50: #F6F1FA;
+  --color-brand-purple-100: #F6F0F9;
+  --color-brand-purple-200: #EDE2FF;
+  --color-brand-purple-300: #7B7B9B;
+  --color-brand-purple-500: #531CB3;
+  --color-brand-purple-900: #2F2F4B;
+  --color-brand-red: #BE1E2D;
+  --color-brand-yellow: #EBDA12;
+  --color-brand-orange: #F29559;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #000000;
-    --foreground: #ffffff;
-  }
+.dark {
+  /* Dark mode colors */
+  --background: #000000;
+  --foreground: #ffffff;
+  
+  --color-text: #ffffff;
+  --color-background: #000000;
+  --color-text-label: #827F85;
+  --color-text-placeholder: #827F85;
+  
+  --color-border-light: rgba(130, 127, 133, 0.2);
+  --color-border-line: rgba(130, 127, 133, 0.3);
+  --color-border-grey: rgba(130, 127, 133, 0.4);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+* {
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
