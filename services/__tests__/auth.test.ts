@@ -2,13 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { authService } from '../auth';
 import { apiClient } from '../api-client';
 import { session } from '../session';
-import type {
-  LoginRequest,
-  RegisterRequest,
-  UpdateUserRequest,
-  RequestPasswordResetRequest,
-  ResetPasswordRequest,
-} from '@/types/api';
+import type { UpdateUserRequest } from '@/types/api';
 
 // Mock dependencies
 vi.mock('../api-client');
@@ -19,68 +13,77 @@ describe('authService', () => {
     vi.clearAllMocks();
   });
 
-  describe('login', () => {
-    it('should call API and set token on success', async () => {
-      const loginData: LoginRequest = {
-        email: 'test@example.com',
-        password: 'password123',
-      };
-
+  describe('requestMagicLink', () => {
+    it('should call API to request magic link', async () => {
+      const email = 'test@example.com';
       const mockResponse = {
-        data: { token: 'new-token-123', user: { id: '1', email: 'test@example.com' } },
+        data: { message: 'Magic link sent to your email' },
         headers: {},
       };
 
       vi.mocked(apiClient.post).mockResolvedValue(mockResponse as any);
 
-      const result = await authService.login(loginData);
+      const result = await authService.requestMagicLink(email);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/login', loginData);
+      expect(apiClient.post).toHaveBeenCalledWith('/auth/magic-link/request', {
+        email,
+      });
+      expect(result).toEqual(mockResponse.data);
+    });
+  });
+
+  describe('verifyMagicLink', () => {
+    it('should call API and set token on success', async () => {
+      const token = 'magic-link-token-123';
+      const mockResponse = {
+        data: {
+          token: 'new-token-123',
+          user: { id: '1', email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
+        },
+        headers: {},
+      };
+
+      vi.mocked(apiClient.get).mockResolvedValue(mockResponse as any);
+
+      const result = await authService.verifyMagicLink(token);
+
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/auth/magic-link/verify?token=magic-link-token-123'
+      );
       expect(session.setToken).toHaveBeenCalledWith('new-token-123');
       expect(result).toEqual(mockResponse.data);
     });
 
     it('should extract token from Authorization header if not in body', async () => {
-      const loginData: LoginRequest = {
-        email: 'test@example.com',
-        password: 'password123',
-      };
-
+      const token = 'magic-link-token-123';
       const mockResponse = {
-        data: { user: { id: '1', email: 'test@example.com' } },
+        data: {
+          user: { id: '1', email: 'test@example.com', firstName: 'John', lastName: 'Doe' },
+        },
         headers: { authorization: 'Bearer header-token-123' },
       };
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse as any);
+      vi.mocked(apiClient.get).mockResolvedValue(mockResponse as any);
 
-      await authService.login(loginData);
+      await authService.verifyMagicLink(token);
 
       expect(session.setToken).toHaveBeenCalledWith('header-token-123');
     });
-  });
 
-  describe('register', () => {
-    it('should call API and set token on success', async () => {
-      const registerData: RegisterRequest = {
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'test@example.com',
-        password: 'password123',
-        confirmPassword: 'password123',
-      };
-
+    it('should URL encode the token', async () => {
+      const token = 'token with spaces & special chars';
       const mockResponse = {
-        data: { token: 'new-token-123', user: { id: '1', email: 'test@example.com' } },
+        data: { token: 'new-token-123', user: { id: '1', email: 'test@example.com', firstName: 'John', lastName: 'Doe' } },
         headers: {},
       };
 
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse as any);
+      vi.mocked(apiClient.get).mockResolvedValue(mockResponse as any);
 
-      const result = await authService.register(registerData);
+      await authService.verifyMagicLink(token);
 
-      expect(apiClient.post).toHaveBeenCalledWith('/auth/register', registerData);
-      expect(session.setToken).toHaveBeenCalledWith('new-token-123');
-      expect(result).toEqual(mockResponse.data);
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/auth/magic-link/verify?token=token%20with%20spaces%20%26%20special%20chars'
+      );
     });
   });
 
@@ -140,73 +143,6 @@ describe('authService', () => {
 
       expect(apiClient.put).toHaveBeenCalledWith('/auth/user', updateData);
       expect(result).toEqual(mockUser);
-    });
-  });
-
-  describe('social sign-in', () => {
-    it('should initiate Google sign-in', async () => {
-      const mockResponse = { data: { url: 'https://google-oauth-url.com' } };
-      vi.mocked(apiClient.get).mockResolvedValue(mockResponse as any);
-
-      const result = await authService.googleSignIn();
-
-      expect(apiClient.get).toHaveBeenCalledWith('/auth/user/google');
-      expect(result).toEqual(mockResponse.data);
-    });
-
-    it('should initiate Apple sign-in', async () => {
-      const mockResponse = { data: { url: 'https://apple-oauth-url.com' } };
-      vi.mocked(apiClient.get).mockResolvedValue(mockResponse as any);
-
-      const result = await authService.appleSignIn();
-
-      expect(apiClient.get).toHaveBeenCalledWith('/auth/user/apple');
-      expect(result).toEqual(mockResponse.data);
-    });
-
-    it('should initiate Facebook sign-in', async () => {
-      const mockResponse = { data: { url: 'https://facebook-oauth-url.com' } };
-      vi.mocked(apiClient.get).mockResolvedValue(mockResponse as any);
-
-      const result = await authService.facebookSignIn();
-
-      expect(apiClient.get).toHaveBeenCalledWith('/auth/user/facebook');
-      expect(result).toEqual(mockResponse.data);
-    });
-  });
-
-  describe('password reset', () => {
-    it('should request password reset', async () => {
-      const requestData: RequestPasswordResetRequest = {
-        email: 'test@example.com',
-      };
-
-      const mockResponse = { data: { message: 'Reset email sent' } };
-      vi.mocked(apiClient.post).mockResolvedValue(mockResponse as any);
-
-      const result = await authService.requestPasswordReset(requestData);
-
-      expect(apiClient.post).toHaveBeenCalledWith(
-        '/auth/request-reset-password',
-        requestData
-      );
-      expect(result).toEqual(mockResponse.data);
-    });
-
-    it('should reset password', async () => {
-      const resetData: ResetPasswordRequest = {
-        id: 'reset-token-123',
-        newPassword: 'newpassword123',
-        confirmNewPassword: 'newpassword123',
-      };
-
-      const mockResponse = { data: { message: 'Password reset successful' } };
-      vi.mocked(apiClient.put).mockResolvedValue(mockResponse as any);
-
-      const result = await authService.resetPassword(resetData);
-
-      expect(apiClient.put).toHaveBeenCalledWith('/auth/reset-password', resetData);
-      expect(result).toEqual(mockResponse.data);
     });
   });
 

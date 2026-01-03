@@ -45,26 +45,15 @@ export class UnauthorizedError extends ApiError {
 }
 
 // Auth types
-export interface LoginRequest {
+export interface RequestMagicLinkRequest {
   email: string;
-  password: string;
 }
 
-export interface LoginResponse {
-  token?: string;
-  user?: User;
+export interface RequestMagicLinkResponse {
   message?: string;
 }
 
-export interface RegisterRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-export interface RegisterResponse {
+export interface VerifyMagicLinkResponse {
   token?: string;
   user?: User;
   message?: string;
@@ -93,29 +82,6 @@ export interface UpdateUserRequest {
   phoneNumber?: string;
   nickname?: string;
   bio?: string;
-}
-
-export interface RequestPasswordResetRequest {
-  email: string;
-}
-
-export interface RequestPasswordResetResponse {
-  message?: string;
-}
-
-export interface ResetPasswordRequest {
-  id: string;
-  newPassword: string;
-  confirmNewPassword: string;
-}
-
-export interface ResetPasswordResponse {
-  message?: string;
-}
-
-export interface SocialAuthResponse {
-  url?: string;
-  message?: string;
 }
 
 // Chat types
